@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: beyond_music/web/package-lock.json
+      - name: Tests
+        run: sh tests/run.sh
+      - name: App typechecks and builds
+        working-directory: beyond_music/web
+        run: npm ci --no-audit --no-fund && npm run build:box
+
+  app:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: The Home Assistant app builds
+        run: docker build --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base:3.21 -t beyond-music beyond_music
+      - name: The Docker image builds
+        run: docker build -t beyond-music-any .

@@ -1,0 +1,154 @@
+@import "tailwindcss";
+/* The enter and exit animations dialogs and menus use, and the data-open / data-checked variants. */
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@font-face {
+  font-family: "Sora";
+  src: url("./assets/fonts/SoraVariable.ttf") format("truetype");
+  font-weight: 100 800;
+  font-display: swap;
+}
+
+/* Beyond's own colours (gobeyond.nz): violet for the one thing to press, the void and chrome for the home map,
+   paper for reading, and the four dots. Ember only for things earned. */
+@theme {
+  --color-paper: #f7f6f2;
+  --color-ink: #22221f;
+  --color-ink-soft: #55534b;
+  --color-violet: #6e3ddb;
+  --color-violet-ink: #6135d6;
+  --color-lilac: #9e7bff;
+  --color-violet-soft: #eee8ff;
+  --color-void: #0d0c18;
+  --color-chrome: #2c2458;
+  --color-moss: #2f7d6d;
+  --color-ember: #e8a33d;
+  --color-coral: #d85a30;
+  --color-blue: #378add;
+
+  --font-display: "Sora", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* The shadcn and ReUI names, pointed at the raw values on :root. Inline, so a utility reads var(--foreground) where it
+   is used: that is what lets a .dark card (the home map) switch every colour inside it. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-invert: var(--invert);
+  --color-invert-foreground: var(--invert-foreground);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.875rem;
+  --background: #f7f6f2;          /* paper */
+  --foreground: #22221f;          /* ink */
+  --card: #ffffff;
+  --card-foreground: #22221f;
+  --popover: #ffffff;
+  --popover-foreground: #22221f;
+  --primary: #6e3ddb;             /* Beyond violet: the one thing to press */
+  --primary-foreground: #ffffff;
+  --secondary: #eee8ff;
+  --secondary-foreground: #6135d6;
+  --muted: #edebe4;
+  --muted-foreground: #55534b;    /* ink-soft */
+  --accent: #eee8ff;              /* violet-soft: the picked one reads as chosen */
+  --accent-foreground: #6135d6;
+  --destructive: #d85a30;         /* coral */
+  --destructive-foreground: #a8401f;
+  --border: #e8e6df;
+  --input: #e8e6df;
+  --ring: #6e3ddb;
+  --success: #2f7d6d;             /* moss */
+  --success-foreground: #1f5a4e;
+  --info: #378add;
+  --info-foreground: #1f5f9e;
+  --warning: #e8a33d;             /* ember */
+  --warning-foreground: #8a5a12;
+  --invert: #0d0c18;
+  --invert-foreground: #f7f6f2;
+}
+
+/* The void: the home map and the welcome screens' backdrop. */
+.dark {
+  --background: #0d0c18;
+  --foreground: #f7f6f2;
+  --card: #1a1730;
+  --card-foreground: #f7f6f2;
+  --popover: #1a1730;
+  --popover-foreground: #f7f6f2;
+  --primary: #9e7bff;
+  --primary-foreground: #0d0c18;
+  --secondary: #2c2458;
+  --secondary-foreground: #f7f6f2;
+  --muted: #2c2458;
+  --muted-foreground: #c9c2e8;
+  --accent: #2c2458;
+  --accent-foreground: #f7f6f2;
+  --border: #3a3270;
+  --input: #3a3270;
+  --ring: #9e7bff;
+  --success: #4fa592;
+  --success-foreground: #8fd6c4;
+  --warning: #e8a33d;
+  --warning-foreground: #f3c77d;
+  --destructive: #e5754e;
+  --destructive-foreground: #f2a184;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    background: var(--background);
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+  }
+}
+
+/* iOS zooms in on a field with text under 16px and doesn't zoom back. */
+@media (pointer: coarse) {
+  input, textarea, select { font-size: 16px; }
+}
+
+/* Across the room on a TV: everything a size up, and a bright ring round whatever the remote is on. */
+[data-tv] { font-size: 120%; }
+[data-tv] :focus-visible, [data-tv] :focus { outline: 3px solid var(--color-lilac); outline-offset: 2px; }
+.dark { color-scheme: dark; }
