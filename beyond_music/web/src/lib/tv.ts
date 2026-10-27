@@ -58,8 +58,16 @@ function back() {
   return false
 }
 
+// Beyond TV shows these screens inside its own app (an iframe on LG and Samsung, a WebView on Google TV). At the first
+// screen, Back belongs to Beyond TV: it asks with beyondBack(), and inside an iframe we tell the page around us.
+const inBeyondTV = /BeyondTV/.test(ua) || (typeof window !== "undefined" && window.parent !== window)
+function leave() {
+  if (window.parent !== window) window.parent.postMessage({ beyondMusic: "back" }, "*")
+}
+
 export function startRemote() {
   if (TV) document.documentElement.dataset.tv = ""
+  ;(window as unknown as { beyondBack: () => boolean }).beyondBack = back
   window.addEventListener("keydown", (e) => {
     if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return
     const key = remoteKey(e)
@@ -73,7 +81,9 @@ export function startRemote() {
     if (key === "previous") return e.preventDefault(), player.previous()
     if (key === "back") {
       if (typing && e.key === "Backspace") return
-      if (back() || TV) e.preventDefault()
+      if (back()) return e.preventDefault()
+      if (inBeyondTV) leave()
+      if (TV) e.preventDefault()
       return
     }
     if (!TV) return
