@@ -9,7 +9,7 @@ import { cameraDate, fromFileName, idOf, isCoverFile, matches, trackFrom, videoF
 import { build, createLibrary } from "../beyond_music/server/library.mjs"
 import { createStore } from "../beyond_music/server/store.mjs"
 import { checkAuth, toXml } from "../beyond_music/server/subsonic.mjs"
-import { answer, isPrivate, questions } from "../beyond_music/server/mdns.mjs"
+import { answer, isPrivate, questions, reply } from "../beyond_music/server/mdns.mjs"
 import { shapeStations } from "../beyond_music/server/radio.mjs"
 import { createHash } from "node:crypto"
 
@@ -132,6 +132,18 @@ test("the box answers for beyond-music.local and only trusts the house network",
   assert.equal(questions(a).length, 0, "an answer isn't a question")
   for (const ip of ["192.168.1.2", "10.0.0.1", "172.20.1.1", "::ffff:192.168.0.5", "127.0.0.1", "fd00::1", "100.64.0.1"]) assert.ok(isPrivate(ip), ip)
   for (const ip of ["8.8.8.8", "172.32.0.1", "203.0.113.4"]) assert.ok(!isPrivate(ip), ip)
+})
+
+test("a TV asking from its own port gets the answer straight back, with its question's id", () => {
+  const q = Buffer.from([0x42, 0x54, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 12, ...Buffer.from("beyond-music"), 5, ...Buffer.from("local"), 0, 0, 1, 0, 1])
+  const tv = reply(q, { address: "192.168.1.31", port: 40123 }, "beyond-music.local", "192.168.1.20")
+  assert.deepEqual([tv.address, tv.port, tv.packet[0], tv.packet[1]], ["192.168.1.31", 40123, 0x42, 0x54])
+  assert.deepEqual([...tv.packet.subarray(tv.packet.length - 4)], [192, 168, 1, 20])
+  const group = reply(q, { address: "192.168.1.31", port: 5353 }, "beyond-music.local", "192.168.1.20")
+  assert.deepEqual([group.address, group.port, group.packet[0]], ["224.0.0.251", 5353, 0])
+  assert.equal(reply(q, { address: "8.8.8.8", port: 40123 }, "beyond-music.local", "192.168.1.20").address, "224.0.0.251", "never straight to the internet")
+  assert.equal(reply(q, { address: "192.168.1.31", port: 40123 }, "other.local", "192.168.1.20"), null)
+  assert.equal(reply(q, { address: "192.168.1.31", port: 40123 }, "beyond-music.local", undefined), null)
 })
 
 test("radio stations: RNZ first, no duplicates, only real streams", () => {

@@ -49,9 +49,9 @@ export function questions(buf) {
   return out
 }
 
-export function answer(name, ip) {
+export function answer(name, ip, id = 0) {
   const labels = name.split(".")
-  const parts = [Buffer.from([0, 0, 0x84, 0, 0, 0, 0, 1, 0, 0, 0, 0])]
+  const parts = [Buffer.from([id >> 8, id & 255, 0x84, 0, 0, 0, 0, 1, 0, 0, 0, 0])]
   for (const l of labels) parts.push(Buffer.from([l.length]), Buffer.from(l))
   const tail = Buffer.alloc(15)
   tail[0] = 0
@@ -64,16 +64,24 @@ export function answer(name, ip) {
   return Buffer.concat(parts)
 }
 
+// What to send back for a question, and where: nothing unless it asks for our name. Asked from any port but 5353
+// (Beyond TV on Google TV asks like this), the answer goes straight back to the asker with its question's id, as
+// multicast DNS says for a one-off question; otherwise to everybody on the group. Exported for the tests.
+export function reply(msg, from, host, ip) {
+  if (!ip || !questions(msg).some((q) => q.name === host && (q.type === 1 || q.type === 255))) return null
+  if (from && from.port !== PORT && isPrivate(from.address)) return { packet: answer(host, ip, msg.readUInt16BE(0)), port: from.port, address: from.address }
+  return { packet: answer(host, ip), port: PORT, address: GROUP }
+}
+
 export function advertise(host = "beyond-music.local", log = () => {}) {
   const sock = dgram.createSocket({ type: "udp4", reuseAddr: true })
   sock.on("error", (e) => {
     log(`Can't answer for ${host} (${e.code}); use the box's address instead.`)
     try { sock.close() } catch {}
   })
-  sock.on("message", (msg) => {
-    if (!questions(msg).some((q) => q.name === host && (q.type === 1 || q.type === 255))) return
-    const ip = lanAddresses()[0]
-    if (ip) sock.send(answer(host, ip), PORT, GROUP)
+  sock.on("message", (msg, from) => {
+    const r = reply(msg, from, host, lanAddresses()[0])
+    if (r) sock.send(r.packet, r.port, r.address)
   })
   sock.bind(PORT, () => {
     try {
