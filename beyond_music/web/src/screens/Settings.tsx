@@ -198,11 +198,11 @@ function CdCard() {
         )}
         {!cd ? null : cd.canCopy ? (
           <Button size="lg" className="self-start" disabled={cd.copying} onClick={copy}>
-            <Disc /> {cd.copying ? "Copying…" : "Copy the CD in the drive"}
+            <Disc /> {cd.copying ? "Copying…" : cd.disc ? `Copy “${cd.disc}”` : "Copy the CD in the drive"}
           </Button>
         ) : (
           <p className="text-sm text-muted-foreground">
-            {!cd.hasDrive ? "No CD drive found. Plug a USB CD drive into this box." : "This box needs its CD copying tools added first; see the README’s “Copying CDs” part."}
+            {cd.needsDisc ? "Put one of your CDs in the drive. Any USB CD drive works." : !cd.hasDrive ? "No CD drive found. Plug a USB CD drive into this box." : "This box needs its CD copying tools added first; see the README’s “Copying CDs” part."}
           </p>
         )}
       </CardContent>
