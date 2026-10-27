@@ -70,6 +70,9 @@ export type CdStatus = {
   canCopy: boolean
   hasTools: boolean
   hasDrive: boolean
+  // A Mac shows no drive until a disc is in it: then this is true and the words say put a CD in.
+  needsDisc?: boolean
+  disc?: string | null
   copying: boolean
   last: { started: number; done: boolean; ok: boolean; line: string } | null
 }

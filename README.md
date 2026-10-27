@@ -40,6 +40,12 @@ play stays on the box.
 
 ## Put it on a box
 
+**A Mac** (the easy start, like Plex's media server): get this folder onto the Mac (`git clone
+https://github.com/YeahBuddyNZ/Beyond-Music`), then double-click `mac/Beyond Music.command` (the first time, right-click
+it and press Open). It adds Node if the Mac hasn't got it, builds the app once, asks where your music is, and sets
+Beyond Music to start whenever the Mac does. `mac/Beyond Music.command --stop` stops it. Plug in any USB CD drive to
+copy CDs: nothing else to install.
+
 **Home Assistant:** Settings, Add-ons, Add-on store, the three dots, *Repositories*, and add
 `https://github.com/YeahBuddyNZ/Beyond-Music`. Install **Beyond Music**, start it, and open it from the side bar. Your
 `/media` and `/share` folders are already in; add more under the app's *Configuration* or in Beyond Music's Settings.
@@ -64,8 +70,10 @@ folders on that box; add any others there.
 
 ### Copying CDs
 
-Plug in a USB CD drive. The box needs `abcde`, `cdparanoia` and `flac` (`brew install abcde cdparanoia flac`, or
-`sudo apt install abcde cdparanoia flac`); the Docker image has them. On Home Assistant, CD copying isn't there yet.
+Plug in any USB CD drive. **On a Mac** nothing needs adding: the Mac reads the disc, MusicBrainz names the album
+from its table of contents (only the track lengths are sent), the Cover Art Archive gives the cover, and each track is
+saved as FLAC (or Apple Lossless on an older Mac without `brew install flac`). **On a Raspberry Pi or other Linux box**
+it needs `abcde`, `cdparanoia` and `flac` (`sudo apt install abcde cdparanoia flac`); the Docker image has them. On Home Assistant, CD copying isn't there yet.
 Copies go into *Copied CDs* in the box's data folder.
 
 ### Settings for the server

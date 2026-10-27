@@ -25,7 +25,7 @@ and Beyond Family. Tagline "Free your world".
   writes need `Content-Type: application/json`. `tags.mjs` reads tags by hand (ID3, FLAC, Vorbis, MP4), `names.mjs`
   holds the pure naming rules, `library.mjs` scans (incremental by mtime and size), `store.mjs` keeps places,
   playlists and the apps password, `subsonic.mjs` is the `/rest` door for other apps, `mdns.mjs` answers
-  `beyond-music.local`, `cd.mjs` runs abcde, `radio.mjs` asks Radio Browser.
+  `beyond-music.local`, `cd.mjs` copies CDs (on a Mac with `afconvert` and MusicBrainz by table of contents, pure parts in `disc.mjs`; elsewhere abcde), `mac/Beyond Music.command` starts it on a Mac as a launch agent (ADR 0003), `radio.mjs` asks Radio Browser.
 - File paths never leave the box: tracks and videos go out by id (`library.view.where`).
 - `beyond_music/web/` is React 19, Vite and Tailwind v4 with ReUI (`base-nova` on Base UI), copied from Beyond Home.
   Every visible part comes from `components/ui` or `components/reui` (installed output: compose, never edit).
