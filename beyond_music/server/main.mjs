@@ -22,6 +22,7 @@ import { advertise, isPrivate, lanAddresses } from "./mdns.mjs"
 import { matches, kindOf } from "./names.mjs"
 import { subsonic } from "./subsonic.mjs"
 import { createUsb, planExport } from "./usb.mjs"
+import { isMac, matchPlaylists, musicAppLibrary, placeName } from "./apple.mjs"
 
 const here = dirname(fileURLToPath(import.meta.url))
 const VERSION = "0.1.0"
@@ -53,7 +54,18 @@ const sources = () => [
   ...store.state.places,
 ]
 
-const library = createLibrary({ dataDir: DATA, sources, log })
+// After every look for new music, the Music app's playlists come across (on a Mac that shares its Library.xml).
+let musicApp = { found: false }
+async function syncMusicApp(view) {
+  if (!isMac() && !process.env.BEYOND_MUSIC_LIBRARY_XML) return
+  const lib = await musicAppLibrary(process.env.BEYOND_MUSIC_LIBRARY_XML ? [process.env.BEYOND_MUSIC_LIBRARY_XML] : undefined)
+  if (!lib) return void (musicApp = { found: false })
+  const m = matchPlaylists(lib, view.where)
+  const playlists = store.syncAppPlaylists(m.playlists)
+  musicApp = { found: true, playlists, outside: m.outside, locked: m.locked, at: Date.now() }
+}
+
+const library = createLibrary({ dataDir: DATA, sources, log, onScanned: syncMusicApp })
 await library.load()
 const usb = createUsb({ log })
 const cd = createCd({ dataDir: DATA, ripsDir: RIPS, onDone: () => library.scan(), log })
@@ -258,10 +270,12 @@ const server = createServer(async (req, res) => {
           if (s) counts[s.id] = (counts[s.id] || 0) + 1
         }
         return send(res, 200, {
-          places: sources().map((s) => ({ id: s.id, name: s.name, path: s.path, files: counts[s.id] || 0, fixed: !store.state.places.some((x) => x.id === s.id) })),
-          suggestions: (await Promise.all(usualPlaces().map(async (path) => ((await hasMedia(path, kindOf)) ? path : null)))).filter(
-            (path) => path && !sources().some((s) => path === s.path || path.startsWith(s.path + sep)),
-          ),
+          places: sources().map((s) => ({ id: s.id, name: s.name, path: s.path, files: counts[s.id] || 0, inCloud: library.cloud[s.id] || 0, fixed: !store.state.places.some((x) => x.id === s.id) })),
+          suggestions: (await Promise.all(usualPlaces().map(async (path) => ((await hasMedia(path, kindOf)) ? path : null))))
+            .filter((path) => path && !sources().some((s) => path === s.path || path.startsWith(s.path + sep) || s.path.startsWith(path + sep)))
+            .map((path) => ({ path, name: placeName(path) || path })),
+          mac: isMac(),
+          musicApp,
         })
       }
       if (p === "/api/places/browse") {
@@ -271,8 +285,7 @@ const server = createServer(async (req, res) => {
         return send(res, 200, { at: resolve(at), folders: await listFolders(resolve(at)) })
       }
       if (p === "/api/cd") return send(res, 200, await cd.status())
-      if (p === "/api/labs") return send(res, 200, store.state.labs || {})
-      if (p === "/api/usb" && store.state.labs?.usb) return send(res, 200, { sticks: await usb.list(), job: usb.status() })
+      if (p === "/api/usb") return send(res, 200, { sticks: await usb.list(), job: usb.status() })
       if (p === "/api/apps") return send(res, 200, { on: Boolean(store.state.appsPassword), password: store.state.appsPassword || "", user: "household", addresses: lanAddresses().map((a) => `http://${a}:${PORT}`) })
       if (p.startsWith("/api/")) return send(res, 404, { error: "Not here." })
       return sendStatic(req, res, p)
@@ -312,8 +325,7 @@ const server = createServer(async (req, res) => {
       }
       if (p === "/api/apps") return send(res, 200, { on: Boolean(store.setApps(Boolean(b.on))) })
       if (p === "/api/cd/copy") return send(res, 200, await cd.copy())
-      if (p === "/api/labs") return send(res, 200, store.setLab(String(b.name || ""), b.on))
-      if (p === "/api/usb/copy" && store.state.labs?.usb) {
+      if (p === "/api/usb/copy") {
         const ids = new Set((Array.isArray(b.playlists) ? b.playlists : []).map(String))
         const playlists = store.state.playlists.filter((x) => ids.has(x.id))
         const tracks = payload().tracks.map((t) => ({ ...t, path: library.view.where.get(t.id) })).filter((t) => t.path)

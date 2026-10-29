@@ -35,11 +35,15 @@ and Beyond Family. Tagline "Free your world".
   speed, backwards, loops), the EQ and crossfader in Web Audio; `lib/djpure.js` holds the maths (tempo, sync,
   crossfader, platter, MIDI), tested in `tests/dj.test.mjs`; `lib/midi.ts` learns a controller over Web MIDI (Safari
   has none). Cues and the MIDI mapping stay in this browser's storage. Never record or stream a mix off the box.
-- USB stick for Pioneer decks (ADR 0005, behind the `usb` lab: `store.LABS`, `POST /api/labs`, Settings shows it
-  with `?labs`): `server/pdb.mjs` writes `PIONEER/rekordbox/export.pdb` (DeviceSQL, from Crate Digger's description;
+- USB stick for Pioneer decks (ADR 0005, in Settings for everyone since ADR 0006): `server/pdb.mjs` writes `PIONEER/rekordbox/export.pdb` (DeviceSQL, from Crate Digger's description;
   `tests/pdb.test.mjs` reads it back with its own reader), `server/usb.mjs` plans and copies (songs to `Contents/`,
   what we put there listed in `PIONEER/beyond-music.json`, a rekordbox library kept as `.rekordbox-backup` only after
   the person says yes). No waveforms or beat grids (ANLZ files) yet. Not yet tried on a real CDJ or XDJ.
+- A Mac's own music (`server/apple.mjs`, ADR 0006): iCloud Drive and the Music app's folders are suggested places;
+  iCloud's `.Name.mp3.icloud` stand-ins are counted (`library.cloud`) and asked down with `brctl download`, then looked
+  at again 3 minutes later; the Music app's `Library.xml` is read after every scan (`onScanned`) and its playlists
+  copied in one way (`store.syncAppPlaylists`, marked `app`, read only on the box). Apple Music subscription songs
+  (FairPlay, `.m4p`) are only counted, never played. `BEYOND_MUSIC_LIBRARY_XML` points at a Library.xml off a Mac.
 - `?preview` runs against `mock.js`; `npm run build:box` leaves it out. `?box=http://ip:8097` lets Beyond TV open the
   app from its own files.
 - Checks: `sh tests/run.sh`; `cd beyond_music/web && npm run build:box`. GitHub Actions minutes may be out: run both

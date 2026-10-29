@@ -4,15 +4,17 @@
 import { mkdir, readdir, stat, readFile, writeFile, rename } from "node:fs/promises"
 import { join, relative, extname, dirname } from "node:path"
 import { readTags } from "./tags.mjs"
+import { bringDown, cloudName } from "./apple.mjs"
 import { albumIdOf, artistIdOf, idOf, isCoverFile, kindOf, sortName, trackFrom, videoFrom } from "./names.mjs"
 
 const SKIP = /^(\.|@eaDir$|#recycle$|\$RECYCLE\.BIN$|System Volume Information$|lost\+found$|node_modules$)/
 
-export function createLibrary({ dataDir, sources, log = () => {} }) {
+export function createLibrary({ dataDir, sources, log = () => {}, onScanned = async () => {} }) {
   const file = join(dataDir, "library.json")
   let index = { files: {}, scannedAt: null } // path → what was read, so a rescan only reads what changed
   let view = build(index)
   let scanning = null
+  let later = null
 
   async function load() {
     try {
@@ -34,9 +36,16 @@ export function createLibrary({ dataDir, sources, log = () => {} }) {
       const started = Date.now()
       const seen = {}
       let read = 0
+      const cloud = {} // source id → songs iCloud still holds
+      const toBringDown = []
       for (const src of sources()) {
         let found = 0
-        for await (const { path, st } of walk(src.path)) {
+        for await (const { path, st, inCloud } of walk(src.path)) {
+          if (inCloud) {
+            cloud[src.id] = (cloud[src.id] || 0) + 1
+            toBringDown.push(path)
+            continue
+          }
           const kind = kindOf(path)
           if (!kind) continue
           const rel = relative(src.path, path)
@@ -64,9 +73,16 @@ export function createLibrary({ dataDir, sources, log = () => {} }) {
         }
         log(`${src.name}: ${found} files`)
       }
-      index = { files: seen, scannedAt: Date.now() }
+      index = { files: seen, scannedAt: Date.now(), cloud }
       view = build(index)
       await save()
+      // Ask iCloud for what it still holds, and look again once it has had time to bring them down.
+      if (bringDown(toBringDown) && !later) later = setTimeout(() => ((later = null), scan()), 180_000).unref()
+      try {
+        await onScanned(view)
+      } catch (e) {
+        log(`After the scan: ${e.message}`)
+      }
       log(`Scan done in ${Math.round((Date.now() - started) / 1000)}s, ${read} read`)
       return view
     })().finally(() => (scanning = null))
@@ -81,6 +97,9 @@ export function createLibrary({ dataDir, sources, log = () => {} }) {
     },
     get scanning() {
       return Boolean(scanning)
+    },
+    get cloud() {
+      return index.cloud || {}
     },
     get scannedAt() {
       return index.scannedAt
@@ -97,6 +116,11 @@ async function* walk(root, depth = 0) {
     return
   }
   for (const e of entries) {
+    const real = e.isFile() && cloudName(e.name)
+    if (real) {
+      if (kindOf(real)) yield { path: join(root, e.name), inCloud: true }
+      continue
+    }
     if (SKIP.test(e.name)) continue
     const path = join(root, e.name)
     if (e.isDirectory()) yield* walk(path, depth + 1)

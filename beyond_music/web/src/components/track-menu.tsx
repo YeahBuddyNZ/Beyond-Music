@@ -53,7 +53,7 @@ export function PlaylistPicker({ open, onOpenChange, lib, ids }: { open: boolean
           <DialogDescription>Playlists are the whole household’s, on every screen.</DialogDescription>
         </DialogHeader>
         <div className="flex max-h-72 flex-col gap-1 overflow-y-auto">
-          {lib.playlists.map((p) => (
+          {lib.playlists.filter((p) => !p.app).map((p) => (
             <Button key={p.id} variant="ghost" size="lg" className="justify-start" onClick={() => add(p)}>
               <ListMusic /> {p.name}
             </Button>
