@@ -81,6 +81,12 @@ export const box = {
   async setApps(on: boolean) {
     return PREVIEW ? (await mock()).mockSetApps(on) : post("api/apps", { on })
   },
+  // A whole song as bytes, for DJ mode, which has to hold it to scratch and loop it.
+  async audio(id: string): Promise<ArrayBuffer> {
+    const res = await fetch(playUrl(id))
+    if (!res.ok) throw new Error("The music box couldn’t send that song.")
+    return res.arrayBuffer()
+  },
   async setName(name: string) {
     return PREVIEW ? undefined : post("api/name", { name })
   },

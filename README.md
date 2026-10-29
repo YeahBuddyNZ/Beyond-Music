@@ -21,11 +21,16 @@ videos.
 - **New Zealand radio, live,** RNZ first, from the free Radio Browser directory.
 - **Copy a CD** in full quality (FLAC) with a USB CD drive plugged into the box.
 - **Playlists for the whole household.**
+- **DJ mode** on a computer: two decks with platters you can scratch, the tempo of every song found by itself, Sync,
+  4 beat loops, cues and four hot cues, a three band EQ on each deck and a crossfader. Plug in a DJ controller (Chrome
+  or Edge) and teach it each control with *Learn*.
 - **Other music apps and the car:** turn on *Other music apps* in Settings and apps like Symfonium (Android) and
   Amperfy (iPhone) play from the box as a "Subsonic" server, with Android Auto and CarPlay through them.
 
 ## On the way
 
+- **Copy to a USB stick for club decks:** your playlists, tempos and cue points on a stick that Pioneer DJ players
+  read, the way rekordbox does it.
 - A **Music** button in Beyond TV that finds the box by itself.
 - Bringing playlists across from Spotify, and watch history from Plex.
 - Video that every TV can play (changing a file's format on the fly), and listening away from home.

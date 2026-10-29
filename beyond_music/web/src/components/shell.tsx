@@ -2,7 +2,7 @@
 // phone, and the player along the bottom of both.
 
 import { cn } from "cn"
-import { Clapperboard, Home, Library as LibraryIcon, Loader2, Pause, Play, Radio, Repeat, Repeat1, Search, Settings, Shuffle, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react"
+import { Clapperboard, Disc3, Home, Library as LibraryIcon, Loader2, Pause, Play, Radio, Repeat, Repeat1, Search, Settings, Shuffle, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react"
 import type { ReactNode } from "react"
 import { Wordmark } from "@/components/brand"
 import { Cover } from "@/components/media"
@@ -17,6 +17,8 @@ const PLACES = [
   { href: "#videos", label: "Videos", icon: Clapperboard, match: ["videos", "show", "watch"] },
   { href: "#radio", label: "Radio", icon: Radio, match: ["radio"] },
 ]
+// DJ mode needs a computer's screen, so it sits in the side list and not in a phone's tabs.
+const WIDE = [{ href: "#dj", label: "DJ mode", icon: Disc3, match: ["dj"] }]
 
 export function Shell({ screen, children, bare }: { screen: string; children: ReactNode; bare?: boolean }) {
   const on = (m: string[]) => m.includes(screen)
@@ -27,7 +29,7 @@ export function Shell({ screen, children, bare }: { screen: string; children: Re
           <Wordmark />
         </a>
         <nav className="flex flex-col gap-1">
-          {PLACES.map((p) => (
+          {[...PLACES, ...WIDE].map((p) => (
             <a
               key={p.href}
               href={p.href}
