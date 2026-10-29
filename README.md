@@ -24,24 +24,16 @@ videos.
 - **DJ mode** on a computer: two decks with platters you can scratch, the tempo of every song found by itself, Sync,
   4 beat loops, cues and four hot cues, a three band EQ on each deck and a crossfader. Plug in a DJ controller (Chrome
   or Edge) and teach it each control with *Learn*.
-<<<<<<< HEAD
 - **A USB stick for DJ decks** (trying it out: open Settings with `?labs` on the address and switch it on): pick
   playlists and Beyond Music puts the songs and a library on a stick that Pioneer DJ players (CDJs, XDJs) read, with
   the tempos DJ mode found. Copy again and it takes off only the songs it put there that are no longer chosen. Not
   yet tried on a real deck. For your own use at home; playing out at a venue needs the venue's music licence.
-=======
->>>>>>> cc35e9c
 - **Other music apps and the car:** turn on *Other music apps* in Settings and apps like Symfonium (Android) and
   Amperfy (iPhone) play from the box as a "Subsonic" server, with Android Auto and CarPlay through them.
 
 ## On the way
 
-<<<<<<< HEAD
 - **Waveforms, beat grids and cue points on the USB stick**, so the decks show them as they do with rekordbox.
-=======
-- **Copy to a USB stick for club decks:** your playlists, tempos and cue points on a stick that Pioneer DJ players
-  read, the way rekordbox does it.
->>>>>>> cc35e9c
 - A **Music** button in Beyond TV that finds the box by itself.
 - Bringing playlists across from Spotify, and watch history from Plex.
 - Video that every TV can play (changing a file's format on the fly), and listening away from home.
