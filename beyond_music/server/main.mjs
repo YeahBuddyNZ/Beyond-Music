@@ -21,6 +21,7 @@ import { createCd } from "./cd.mjs"
 import { advertise, isPrivate, lanAddresses } from "./mdns.mjs"
 import { matches, kindOf } from "./names.mjs"
 import { subsonic } from "./subsonic.mjs"
+import { createUsb, planExport } from "./usb.mjs"
 
 const here = dirname(fileURLToPath(import.meta.url))
 const VERSION = "0.1.0"
@@ -54,6 +55,7 @@ const sources = () => [
 
 const library = createLibrary({ dataDir: DATA, sources, log })
 await library.load()
+const usb = createUsb({ log })
 const cd = createCd({ dataDir: DATA, ripsDir: RIPS, onDone: () => library.scan(), log })
 
 // What the app sees: the library without the hidden albums and without any paths on the box.
@@ -269,6 +271,8 @@ const server = createServer(async (req, res) => {
         return send(res, 200, { at: resolve(at), folders: await listFolders(resolve(at)) })
       }
       if (p === "/api/cd") return send(res, 200, await cd.status())
+      if (p === "/api/labs") return send(res, 200, store.state.labs || {})
+      if (p === "/api/usb" && store.state.labs?.usb) return send(res, 200, { sticks: await usb.list(), job: usb.status() })
       if (p === "/api/apps") return send(res, 200, { on: Boolean(store.state.appsPassword), password: store.state.appsPassword || "", user: "household", addresses: lanAddresses().map((a) => `http://${a}:${PORT}`) })
       if (p.startsWith("/api/")) return send(res, 404, { error: "Not here." })
       return sendStatic(req, res, p)
@@ -308,6 +312,18 @@ const server = createServer(async (req, res) => {
       }
       if (p === "/api/apps") return send(res, 200, { on: Boolean(store.setApps(Boolean(b.on))) })
       if (p === "/api/cd/copy") return send(res, 200, await cd.copy())
+      if (p === "/api/labs") return send(res, 200, store.setLab(String(b.name || ""), b.on))
+      if (p === "/api/usb/copy" && store.state.labs?.usb) {
+        const ids = new Set((Array.isArray(b.playlists) ? b.playlists : []).map(String))
+        const playlists = store.state.playlists.filter((x) => ids.has(x.id))
+        const tracks = payload().tracks.map((t) => ({ ...t, path: library.view.where.get(t.id) })).filter((t) => t.path)
+        const plan = planExport({ tracks, playlists, tempo: b.tempo && typeof b.tempo === "object" ? b.tempo : {} })
+        try {
+          return send(res, 202, { job: await usb.run(String(b.stick || ""), plan, { replace: b.replace === true }), skipped: plan.skipped })
+        } catch (e) {
+          return send(res, e.code >= 400 && e.code < 600 ? e.code : 400, { error: e.message, rekordbox: Boolean(e.rekordbox) })
+        }
+      }
     }
     send(res, 404, { error: "Not here." })
   } catch (e) {

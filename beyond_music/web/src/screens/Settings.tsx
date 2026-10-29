@@ -1,4 +1,4 @@
-import { CheckCircle2, ChevronRight, Copy, Disc, Folder, FolderPlus, HardDrive, Loader2, RefreshCw, Smartphone, Trash2 } from "lucide-react"
+import { CheckCircle2, ChevronRight, Copy, Disc, Disc3, Folder, FolderPlus, FlaskConical, HardDrive, Loader2, RefreshCw, Smartphone, Trash2, Usb } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { box, PREVIEW } from "@/api"
@@ -8,21 +8,31 @@ import { Badge } from "@/components/reui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item"
+import { Progress } from "@/components/ui/progress"
 import { Switch } from "@/components/ui/switch"
 import { plural } from "@/lib/pure.js"
 import { reload, useLibrary } from "@/lib/store"
-import type { Apps, CdStatus, Folder as FolderT, Places } from "@/lib/types"
+import { knownTempos } from "@/lib/tempos"
+import type { Apps, CdStatus, Folder as FolderT, Labs, Places, Stick, UsbJob } from "@/lib/types"
 
 declare const __APP_VERSION__: string
 
+// Early features show only with ?labs in the address, or once one is switched on.
+const LABS_ASKED = /[?&]labs/.test(location.search) || /[?&]labs/.test(location.hash)
+
 export function Settings() {
   const { lib } = useLibrary()
+  const [labs, setLabs] = useState<Labs | null>(null)
+  useEffect(() => void box.labs().then(setLabs).catch(() => {}), [])
   return (
     <Page title="Settings">
       <div className="flex max-w-3xl flex-col gap-4 px-2">
         <PlacesCard scanning={!!lib?.scanning} />
         <CdCard />
         <AppsCard />
+        {labs?.usb && <UsbCard />}
+        {labs && (LABS_ASKED || Object.values(labs).some(Boolean)) && <LabsCard labs={labs} onChange={setLabs} />}
         <Card>
           <CardHeader>
             <CardTitle>Keeping it fair</CardTitle>
@@ -246,6 +256,144 @@ function AppsCard() {
         {apps?.on && <Badge variant="info-light" className="self-start">Works at home only. Away from home is on the way.</Badge>}
         {PREVIEW && <p className="text-xs text-muted-foreground">Preview: nothing here is real.</p>}
       </CardContent>
+    </Card>
+  )
+}
+
+function LabsCard({ labs, onChange }: { labs: Labs; onChange: (l: Labs) => void }) {
+  const flip = async (on: boolean) => onChange(await box.setLab("usb", on))
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><FlaskConical className="size-5" /> Try things early</CardTitle>
+        <CardDescription>Still being made and checked. They may change, or go.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <label className="flex items-center gap-3">
+          <Switch checked={!!labs.usb} onCheckedChange={flip} />
+          <span className="font-medium">A USB stick for DJ decks</span>
+        </label>
+      </CardContent>
+    </Card>
+  )
+}
+
+const gb = (n: number | null) => (n == null ? "" : `${(n / 1e9).toFixed(n < 1e10 ? 1 : 0)} GB`)
+
+function UsbCard() {
+  const { lib } = useLibrary()
+  const [state, setState] = useState<{ sticks: Stick[]; job: UsbJob } | null>(null)
+  const [stick, setStick] = useState<string | null>(null)
+  const [chosen, setChosen] = useState<string[]>([])
+  const [asking, setAsking] = useState(false)
+  const load = () => box.usb().then(setState).catch(() => {})
+  const copying = state?.job.state === "copying"
+  useEffect(() => {
+    load()
+    const t = setInterval(load, copying ? 1000 : 5000)
+    return () => clearInterval(t)
+  }, [copying])
+  useEffect(() => {
+    if (state && !state.sticks.some((s) => s.path === stick)) setStick(state.sticks[0]?.path ?? null)
+  }, [state, stick])
+  const playlists = lib?.playlists ?? []
+  const toggle = (id: string, on: boolean) => setChosen((c) => (on ? [...c, id] : c.filter((x) => x !== id)))
+  const go = async (replace = false) => {
+    if (!stick) return
+    setAsking(false)
+    try {
+      const r = await box.copyToUsb({ stick, playlists: chosen, tempo: knownTempos(), replace })
+      setState((s) => (s ? { ...s, job: r.job } : s))
+      if (r.skipped.length) toast(`${plural(r.skipped.length, "song")} can’t go on: the players don’t play that kind of file.`)
+    } catch (e) {
+      if ((e as { body?: { rekordbox?: boolean } }).body?.rekordbox) setAsking(true)
+      else toast.error((e as Error).message)
+    }
+  }
+  const job = state?.job
+  const picked = state?.sticks.find((s) => s.path === stick)
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><Disc3 className="size-5" /> A USB stick for DJ decks <Badge variant="warning-light">Trying it out</Badge></CardTitle>
+        <CardDescription>Puts your playlists on a USB stick the way rekordbox does, so Pioneer DJ players (CDJs, XDJs and the all-in-ones) can find them. For you and your household. Playing to people at a gig or a bar needs the venue’s music licence.</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        {!state ? (
+          <Loader2 className="size-5 animate-spin text-muted-foreground" />
+        ) : !state.sticks.length ? (
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-muted-foreground">Plug a USB stick into this box.</p>
+            <Button variant="outline" size="sm" onClick={load}><RefreshCw /> Look again</Button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {state.sticks.map((s) => (
+              <Item key={s.path} variant={s.path === stick ? "muted" : "outline"} render={<button type="button" onClick={() => setStick(s.path)} />} className="text-left">
+                <ItemMedia variant="icon"><Usb /></ItemMedia>
+                <ItemContent>
+                  <ItemTitle>{s.name}</ItemTitle>
+                  <ItemDescription>{[s.free != null && `${gb(s.free)} free of ${gb(s.size)}`, s.ours && "has your DJ playlists", s.rekordbox && "has a rekordbox library"].filter(Boolean).join(", ")}</ItemDescription>
+                </ItemContent>
+                {s.path === stick && <ItemActions><CheckCircle2 className="size-5 text-primary" /></ItemActions>}
+              </Item>
+            ))}
+          </div>
+        )}
+        {state && state.sticks.length > 0 && (
+          playlists.length ? (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium">Which playlists</p>
+              {playlists.map((p) => (
+                <label key={p.id} className="flex items-center gap-3">
+                  <Switch checked={chosen.includes(p.id)} onCheckedChange={(on) => toggle(p.id, on)} />
+                  <span>{p.name} <span className="text-muted-foreground">({plural(p.items.length, "song")})</span></span>
+                </label>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Make a playlist first: the stick holds playlists, and each song in them.</p>
+          )
+        )}
+        {job?.state === "copying" && (
+          <div className="flex flex-col gap-1">
+            <Progress value={job.total ? Math.round(((job.done || 0) / job.total) * 100) : 0} />
+            <p className="truncate text-sm text-muted-foreground">{job.done} of {job.total}{job.current ? `: ${job.current}` : ""}</p>
+          </div>
+        )}
+        {job?.state === "done" && (
+          <Alert variant="success">
+            <CheckCircle2 />
+            <AlertTitle>Ready on {job.stick}</AlertTitle>
+            <AlertDescription>Eject it first, then plug it into the decks. Songs DJ mode has opened carry their tempo; waveforms and beat grids aren’t on the stick yet.</AlertDescription>
+          </Alert>
+        )}
+        {job?.state === "failed" && (
+          <Alert variant="warning">
+            <Usb />
+            <AlertTitle>That copy didn’t finish</AlertTitle>
+            <AlertDescription>{job.error}</AlertDescription>
+          </Alert>
+        )}
+        {state && state.sticks.length > 0 && playlists.length > 0 && (
+          <Button size="lg" className="self-start" disabled={!stick || !chosen.length || copying} onClick={() => go()}>
+            <Usb /> {copying ? "Copying…" : picked ? `Copy to ${picked.name}` : "Copy to the stick"}
+          </Button>
+        )}
+        {PREVIEW && <p className="text-xs text-muted-foreground">Preview: nothing here is real.</p>}
+      </CardContent>
+      <Dialog open={asking} onOpenChange={setAsking}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>This stick has a rekordbox library on it</DialogTitle>
+            <DialogDescription>Put yours on instead? The rekordbox library is kept on the stick as a backup, and its songs stay where they are, but the players will list your playlists, not those.</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button variant="outline" onClick={() => setAsking(false)}>Keep it as it is</Button>
+            <Button onClick={() => go(true)}>Put mine on</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }

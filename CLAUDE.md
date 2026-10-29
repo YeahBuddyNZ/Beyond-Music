@@ -35,7 +35,12 @@ and Beyond Family. Tagline "Free your world".
   speed, backwards, loops), the EQ and crossfader in Web Audio; `lib/djpure.js` holds the maths (tempo, sync,
   crossfader, platter, MIDI), tested in `tests/dj.test.mjs`; `lib/midi.ts` learns a controller over Web MIDI (Safari
   has none). Cues and the MIDI mapping stay in this browser's storage. Never record or stream a mix off the box.
-  `?preview` runs against `mock.js`; `npm run build:box` leaves it out. `?box=http://ip:8097` lets Beyond TV open the
+- USB stick for Pioneer decks (ADR 0005, behind the `usb` lab: `store.LABS`, `POST /api/labs`, Settings shows it
+  with `?labs`): `server/pdb.mjs` writes `PIONEER/rekordbox/export.pdb` (DeviceSQL, from Crate Digger's description;
+  `tests/pdb.test.mjs` reads it back with its own reader), `server/usb.mjs` plans and copies (songs to `Contents/`,
+  what we put there listed in `PIONEER/beyond-music.json`, a rekordbox library kept as `.rekordbox-backup` only after
+  the person says yes). No waveforms or beat grids (ANLZ files) yet. Not yet tried on a real CDJ or XDJ.
+- `?preview` runs against `mock.js`; `npm run build:box` leaves it out. `?box=http://ip:8097` lets Beyond TV open the
   app from its own files.
 - Checks: `sh tests/run.sh`; `cd beyond_music/web && npm run build:box`. GitHub Actions minutes may be out: run both
   locally before merging.

@@ -12,3 +12,7 @@ export function mockSold(albumId: string): Promise<{ deleted: number; elsewhere:
 export function mockCd(): Promise<CdStatus>
 export function mockApps(): Promise<Apps>
 export function mockSetApps(on: boolean): Promise<void>
+export function mockLabs(): Promise<import("@/lib/types").Labs>
+export function mockSetLab(name: string, on: boolean): Promise<import("@/lib/types").Labs>
+export function mockUsb(): Promise<{ sticks: import("@/lib/types").Stick[]; job: import("@/lib/types").UsbJob }>
+export function mockCopyToUsb(o: unknown): Promise<{ job: import("@/lib/types").UsbJob; skipped: { title: string }[] }>
