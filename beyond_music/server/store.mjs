@@ -9,12 +9,13 @@ import { randomBytes } from "node:crypto"
 const MAX_PLAYLISTS = 200
 const MAX_ITEMS = 2000
 const RECENT = 50
+export const LABS = ["usb"]
 const WORDS = ["kiwi", "tui", "kea", "fern", "tide", "moana", "river", "harbour", "pohutukawa", "kauri", "korimako", "waka", "sun", "rain", "hill", "beach", "surf", "maunga", "nikau", "rimu", "totara", "weka", "pukeko", "kereru"]
 
 export async function createStore(dataDir) {
   await mkdir(dataDir, { recursive: true })
   const file = join(dataDir, "beyond-music.json")
-  let state = { places: [], playlists: [], recent: [], hidden: [], name: "" }
+  let state = { places: [], playlists: [], recent: [], hidden: [], name: "", labs: {} }
   try {
     state = { ...state, ...JSON.parse(await readFile(file, "utf8")) }
   } catch {}
@@ -84,6 +85,13 @@ export async function createStore(dataDir) {
       else if (!state.appsPassword) state.appsPassword = [...randomBytes(3)].map((n) => WORDS[n % WORDS.length]).join("-") + "-" + (randomBytes(1)[0] % 90 + 10)
       save()
       return state.appsPassword
+    },
+    // Things still being tried, each off until switched on in Settings (only shown with ?labs in the address).
+    setLab(name, on) {
+      if (!LABS.includes(name)) throw new Error("No such thing to try.")
+      state.labs = { ...state.labs, [name]: Boolean(on) }
+      save()
+      return state.labs
     },
     setName(name) {
       state.name = String(name || "").trim().slice(0, 40)

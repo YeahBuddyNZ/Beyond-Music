@@ -112,3 +112,17 @@ export const mockApps = async () => ({ on: apps, password: apps ? "kiwi-tide-fer
 export const mockSetApps = async (on) => {
   apps = on
 }
+
+// DJ sticks: one made-up stick that pretends to copy.
+let labs = {}
+let job = { state: "idle" }
+export const mockLabs = async () => labs
+export const mockSetLab = async (name, on) => (labs = { ...labs, [name]: on })
+export const mockUsb = async () => {
+  if (job.state === "copying") job = job.done + 1 >= job.total ? { ...job, done: job.total, state: "done", current: null } : { ...job, done: job.done + 1, current: "A made-up song" }
+  return { sticks: [{ name: "DJ STICK", path: "/Volumes/DJ STICK", free: 12e9, size: 16e9, ours: false, rekordbox: false }], job }
+}
+export const mockCopyToUsb = async () => {
+  job = { state: "copying", stick: "DJ STICK", done: 0, total: 4, skipped: 1 }
+  return { job, skipped: [{ title: "A made-up Ogg file" }] }
+}

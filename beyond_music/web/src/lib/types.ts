@@ -77,6 +77,11 @@ export type CdStatus = {
   last: { started: number; done: boolean; ok: boolean; line: string } | null
 }
 
+// A USB stick plugged into the box, for Pioneer DJ players. `rekordbox`: rekordbox made the library on it.
+export type Stick = { name: string; path: string; free: number | null; size: number | null; ours: boolean; rekordbox: boolean }
+export type UsbJob = { state: "idle" | "copying" | "done" | "failed"; stick?: string; done?: number; total?: number; skipped?: number; current?: string | null; error?: string }
+export type Labs = { usb?: boolean }
+
 export type Apps = { on: boolean; password: string; user: string; addresses: string[] }
 
 // What plays: a song from the box, or a radio station's own stream.
