@@ -5,17 +5,17 @@ import { readFile, writeFile, rename, mkdir, stat, readdir } from "node:fs/promi
 import { join, resolve, basename, sep } from "node:path"
 import { homedir, platform } from "node:os"
 import { randomBytes } from "node:crypto"
+import { cloudName, iCloudDrive, musicAppFolders } from "./apple.mjs"
 
 const MAX_PLAYLISTS = 200
 const MAX_ITEMS = 2000
 const RECENT = 50
-export const LABS = ["usb"]
 const WORDS = ["kiwi", "tui", "kea", "fern", "tide", "moana", "river", "harbour", "pohutukawa", "kauri", "korimako", "waka", "sun", "rain", "hill", "beach", "surf", "maunga", "nikau", "rimu", "totara", "weka", "pukeko", "kereru"]
 
 export async function createStore(dataDir) {
   await mkdir(dataDir, { recursive: true })
   const file = join(dataDir, "beyond-music.json")
-  let state = { places: [], playlists: [], recent: [], hidden: [], name: "", labs: {} }
+  let state = { places: [], playlists: [], recent: [], hidden: [], name: "" }
   try {
     state = { ...state, ...JSON.parse(await readFile(file, "utf8")) }
   } catch {}
@@ -56,6 +56,7 @@ export async function createStore(dataDir) {
       if (existing) {
         const p = state.playlists.find((x) => x.id === existing)
         if (!p) throw new Error("That playlist has gone.")
+        if (p.app) throw new Error("That one comes from the Music app. Change it there.")
         Object.assign(p, { name, items, updated: Date.now() })
         save()
         return p
@@ -67,6 +68,7 @@ export async function createStore(dataDir) {
       return p
     },
     deletePlaylist(pid) {
+      if (state.playlists.find((p) => p.id === pid)?.app) throw new Error("That one comes from the Music app. Take it away there.")
       state.playlists = state.playlists.filter((p) => p.id !== pid)
       save()
     },
@@ -86,12 +88,21 @@ export async function createStore(dataDir) {
       save()
       return state.appsPassword
     },
-    // Things still being tried, each off until switched on in Settings (only shown with ?labs in the address).
-    setLab(name, on) {
-      if (!LABS.includes(name)) throw new Error("No such thing to try.")
-      state.labs = { ...state.labs, [name]: Boolean(on) }
+    // The Music app's playlists, brought across whole each time: added, changed or taken away to match it.
+    // Playlists made on the box are never touched.
+    syncAppPlaylists(list) {
+      const keys = new Set(list.map((p) => p.key))
+      state.playlists = state.playlists.filter((p) => !p.app || keys.has(p.app))
+      for (const p of list) {
+        const name = String(p.name || "").trim().slice(0, 80) || "Playlist"
+        const items = p.items.filter((x) => /^[a-f0-9]{12}$/.test(x)).slice(0, MAX_ITEMS)
+        const have = state.playlists.find((x) => x.app === p.key)
+        if (have) {
+          if (have.name !== name || have.items.join() !== items.join()) Object.assign(have, { name, items, updated: Date.now() })
+        } else if (state.playlists.length < MAX_PLAYLISTS) state.playlists.push({ id: id(), name, items, app: String(p.key).slice(0, 40), created: Date.now(), updated: Date.now() })
+      }
       save()
-      return state.labs
+      return state.playlists.filter((p) => p.app).length
     },
     setName(name) {
       state.name = String(name || "").trim().slice(0, 40)
@@ -103,7 +114,8 @@ export async function createStore(dataDir) {
 // Where music and videos usually are on this kind of box, so nobody has to type a folder.
 export function usualPlaces() {
   const home = homedir()
-  const list = [join(home, "Music"), join(home, "Videos"), join(home, "Movies"), join(home, "Music", "iTunes", "iTunes Media", "Music")]
+  const list = platform() === "darwin" ? [...musicAppFolders(home), iCloudDrive(home)] : []
+  list.push(join(home, "Music"), join(home, "Videos"), join(home, "Movies"), join(home, "Music", "iTunes", "iTunes Media", "Music"))
   if (platform() === "darwin") list.push("/Volumes")
   else if (platform() === "win32") for (const d of "DEFGHIJ") list.push(`${d}:\\`)
   else list.push("/media", "/mnt", "/run/media", "/srv", "/share", "/data/music", "/media/music")
@@ -138,7 +150,8 @@ export async function hasMedia(path, kindOf, depth = 0, budget = { left: 3000 })
   const entries = await readdir(path, { withFileTypes: true }).catch(() => [])
   for (const e of entries) {
     if (--budget.left <= 0) return false
-    if (e.isFile() && (kindOf(e.name) === "audio" || kindOf(e.name) === "video")) return true
+    const name = (e.isFile() && cloudName(e.name)) || e.name
+    if (e.isFile() && (kindOf(name) === "audio" || kindOf(name) === "video")) return true
   }
   for (const e of entries) if (e.isDirectory() && !e.name.startsWith(".") && (await hasMedia(join(path, e.name), kindOf, depth + 1, budget))) return true
   return false

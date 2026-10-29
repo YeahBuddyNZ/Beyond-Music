@@ -212,14 +212,14 @@ export function PlaylistScreen({ id }: { id: string }) {
         <>
           <Button size="lg" data-autofocus disabled={!tracks.length} onClick={() => playTracks(tracks, lib, 0, false)}><Play className="fill-current" /> Play</Button>
           <Button size="lg" variant="secondary" disabled={!tracks.length} onClick={() => playTracks(tracks, lib, Math.floor(Math.random() * tracks.length), true)}><Shuffle /> Shuffle</Button>
-          <Button size="lg" variant="outline" onClick={() => (setName(p.name), setRenaming(true))}><Pencil /> Rename</Button>
-          <Button size="lg" variant="ghost" onClick={remove}><Trash2 /> Delete</Button>
+          {!p.app && <Button size="lg" variant="outline" onClick={() => (setName(p.name), setRenaming(true))}><Pencil /> Rename</Button>}
+          {!p.app && <Button size="lg" variant="ghost" onClick={remove}><Trash2 /> Delete</Button>}
         </>
       }
     >
-      <div className="mb-3 px-2 text-sm text-muted-foreground">{plural(tracks.length, "song")}. The whole household shares this playlist.</div>
+      <div className="mb-3 px-2 text-sm text-muted-foreground">{plural(tracks.length, "song")}. {p.app ? "From the Music app on the Mac: change it there and it changes here." : "The whole household shares this playlist."}</div>
       {tracks.length ? (
-        <TrackList tracks={tracks} lib={lib} showAlbum actions={(_, i) => (
+        <TrackList tracks={tracks} lib={lib} showAlbum actions={p.app ? undefined : (_, i) => (
           <Button variant="ghost" size="icon-lg" aria-label="Take off the playlist" className="text-muted-foreground" onClick={() => save(p.items.filter((_, j) => j !== i))}><Trash2 /></Button>
         )} />
       ) : (

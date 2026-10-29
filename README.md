@@ -24,10 +24,13 @@ videos.
 - **DJ mode** on a computer: two decks with platters you can scratch, the tempo of every song found by itself, Sync,
   4 beat loops, cues and four hot cues, a three band EQ on each deck and a crossfader. Plug in a DJ controller (Chrome
   or Edge) and teach it each control with *Learn*.
-- **A USB stick for DJ decks** (trying it out: open Settings with `?labs` on the address and switch it on): pick
-  playlists and Beyond Music puts the songs and a library on a stick that Pioneer DJ players (CDJs, XDJs) read, with
+- **A USB stick for DJ decks** (new, in Settings): pick playlists and Beyond Music puts the songs and a library on a stick that Pioneer DJ players (CDJs, XDJs) read, with
   the tempos DJ mode found. Copy again and it takes off only the songs it put there that are no longer chosen. Not
   yet tried on a real deck. For your own use at home; playing out at a venue needs the venue's music licence.
+- **iCloud and the Music app on a Mac:** Settings offers iCloud Drive and the Music app's folder with one tap. Songs
+  iCloud is still holding are brought down to the Mac by themselves, and the Music app's playlists come across each
+  time Beyond Music looks for new music (in the Music app: Settings, Files, tick *Share Library XML with other
+  applications*). Songs from an Apple Music subscription stay in Apple's apps: they're locked to them.
 - **Other music apps and the car:** turn on *Other music apps* in Settings and apps like Symfonium (Android) and
   Amperfy (iPhone) play from the box as a "Subsonic" server, with Android Auto and CarPlay through them.
 

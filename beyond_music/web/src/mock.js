@@ -77,9 +77,10 @@ export const mockRadio = async () => [
 
 let places = [
   { id: "cds", name: "Copied CDs", path: "/data/Copied CDs", files: 12, fixed: true },
-  { id: "p1", name: "Music", path: "/media/usb/Music", files: 1840, fixed: false },
+  { id: "p1", name: "Music app", path: "/Users/family/Music/Music/Media.localized/Music", files: 1840, fixed: false },
+  { id: "p2", name: "iCloud Drive", path: "/Users/family/Library/Mobile Documents/com~apple~CloudDocs", files: 212, inCloud: 14, fixed: false },
 ]
-export const mockPlaces = async () => ({ places: structuredClone(places), suggestions: ["/home/family/Music", "/media/usb2"] })
+export const mockPlaces = async () => ({ places: structuredClone(places), suggestions: [{ path: "/Volumes/Music drive", name: "/Volumes/Music drive" }], mac: true, musicApp: { found: true, playlists: 3, outside: 0, locked: 27 } })
 export const mockBrowse = async (path) =>
   path ? { at: path, folders: ["Music", "Videos", "Backup"].map((n) => ({ name: n, path: path + "/" + n })) } : { at: null, folders: [{ name: "/home/family", path: "/home/family" }, { name: "/media", path: "/media" }] }
 export const mockAddPlace = async (path) => {
@@ -114,10 +115,7 @@ export const mockSetApps = async (on) => {
 }
 
 // DJ sticks: one made-up stick that pretends to copy.
-let labs = {}
 let job = { state: "idle" }
-export const mockLabs = async () => labs
-export const mockSetLab = async (name, on) => (labs = { ...labs, [name]: on })
 export const mockUsb = async () => {
   if (job.state === "copying") job = job.done + 1 >= job.total ? { ...job, done: job.total, state: "done", current: null } : { ...job, done: job.done + 1, current: "A made-up song" }
   return { sticks: [{ name: "DJ STICK", path: "/Volumes/DJ STICK", free: 12e9, size: 16e9, ours: false, rekordbox: false }], job }

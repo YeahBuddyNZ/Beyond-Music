@@ -2,7 +2,7 @@
 // at the box's address, behind Home Assistant's ingress, or opened by Beyond TV with ?box=http://address:8097.
 // ?preview swaps the box for the stand-in in mock.js, so the app can be looked at in a browser.
 
-import type { Apps, CdStatus, Folder, Labs, Library, Places, Playlist, Station, Stick, UsbJob } from "@/lib/types"
+import type { Apps, CdStatus, Folder, Library, Places, Playlist, Station, Stick, UsbJob } from "@/lib/types"
 
 export const PREVIEW = import.meta.env.MODE !== "box" && /[?&]preview/.test(location.search)
 
@@ -86,12 +86,6 @@ export const box = {
     const res = await fetch(playUrl(id))
     if (!res.ok) throw new Error("The music box couldn’t send that song.")
     return res.arrayBuffer()
-  },
-  async labs(): Promise<Labs> {
-    return PREVIEW ? (await mock()).mockLabs() : get("api/labs")
-  },
-  async setLab(name: keyof Labs, on: boolean): Promise<Labs> {
-    return PREVIEW ? (await mock()).mockSetLab(name, on) : post("api/labs", { name, on })
   },
   async usb(): Promise<{ sticks: Stick[]; job: UsbJob }> {
     return PREVIEW ? (await mock()).mockUsb() : get("api/usb")

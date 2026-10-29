@@ -45,7 +45,7 @@ export type Video = {
   added: number
 }
 
-export type Playlist = { id: string; name: string; items: string[]; created: number; updated: number }
+export type Playlist = { id: string; name: string; items: string[]; created: number; updated: number; app?: string }
 
 export type Library = {
   name: string
@@ -62,8 +62,9 @@ export type Library = {
 
 export type Station = { id: string; name: string; url: string; logo: string; town: string; tags: string[]; rnz: boolean }
 
-export type Place = { id: string; name: string; path: string; files: number; fixed: boolean }
-export type Places = { places: Place[]; suggestions: string[] }
+export type Place = { id: string; name: string; path: string; files: number; fixed: boolean; inCloud?: number }
+export type MusicApp = { found: boolean; playlists?: number; outside?: number; locked?: number }
+export type Places = { places: Place[]; suggestions: { path: string; name: string }[]; mac?: boolean; musicApp?: MusicApp }
 export type Folder = { name: string; path: string }
 
 export type CdStatus = {
@@ -80,8 +81,6 @@ export type CdStatus = {
 // A USB stick plugged into the box, for Pioneer DJ players. `rekordbox`: rekordbox made the library on it.
 export type Stick = { name: string; path: string; free: number | null; size: number | null; ours: boolean; rekordbox: boolean }
 export type UsbJob = { state: "idle" | "copying" | "done" | "failed"; stick?: string; done?: number; total?: number; skipped?: number; current?: string | null; error?: string }
-export type Labs = { usb?: boolean }
-
 export type Apps = { on: boolean; password: string; user: string; addresses: string[] }
 
 // What plays: a song from the box, or a radio station's own stream.

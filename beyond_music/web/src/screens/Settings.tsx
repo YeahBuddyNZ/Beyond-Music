@@ -1,4 +1,4 @@
-import { CheckCircle2, ChevronRight, Copy, Disc, Disc3, Folder, FolderPlus, FlaskConical, HardDrive, Loader2, RefreshCw, Smartphone, Trash2, Usb } from "lucide-react"
+import { CheckCircle2, ChevronRight, Cloud, Music, Copy, Disc, Disc3, Folder, FolderPlus, HardDrive, Loader2, RefreshCw, Smartphone, Trash2, Usb } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { box, PREVIEW } from "@/api"
@@ -14,25 +14,19 @@ import { Switch } from "@/components/ui/switch"
 import { plural } from "@/lib/pure.js"
 import { reload, useLibrary } from "@/lib/store"
 import { knownTempos } from "@/lib/tempos"
-import type { Apps, CdStatus, Folder as FolderT, Labs, Places, Stick, UsbJob } from "@/lib/types"
+import type { Apps, CdStatus, Folder as FolderT, MusicApp, Places, Stick, UsbJob } from "@/lib/types"
 
 declare const __APP_VERSION__: string
 
-// Early features show only with ?labs in the address, or once one is switched on.
-const LABS_ASKED = /[?&]labs/.test(location.search) || /[?&]labs/.test(location.hash)
-
 export function Settings() {
   const { lib } = useLibrary()
-  const [labs, setLabs] = useState<Labs | null>(null)
-  useEffect(() => void box.labs().then(setLabs).catch(() => {}), [])
   return (
     <Page title="Settings">
       <div className="flex max-w-3xl flex-col gap-4 px-2">
         <PlacesCard scanning={!!lib?.scanning} />
         <CdCard />
         <AppsCard />
-        {labs?.usb && <UsbCard />}
-        {labs && (LABS_ASKED || Object.values(labs).some(Boolean)) && <LabsCard labs={labs} onChange={setLabs} />}
+        <UsbCard />
         <Card>
           <CardHeader>
             <CardTitle>Keeping it fair</CardTitle>
@@ -58,9 +52,9 @@ function PlacesCard({ scanning }: { scanning: boolean }) {
   const [browsing, setBrowsing] = useState(false)
   const load = () => box.places().then(setPlaces).catch(() => {})
   useEffect(() => void load(), [])
-  const add = async (path: string) => {
+  const add = async (path: string, name?: string) => {
     try {
-      await box.addPlace(path)
+      await box.addPlace(path, name)
       toast("Added. Looking through it now.")
       setBrowsing(false)
       await box.scan()
@@ -93,6 +87,7 @@ function PlacesCard({ scanning }: { scanning: boolean }) {
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-medium">{p.name}</div>
                     <div className="truncate text-sm text-muted-foreground">{p.fixed ? "CDs you copy with Beyond Music go here" : p.path} · {plural(p.files, "file")}</div>
+                    {!!p.inCloud && <div className="text-sm text-muted-foreground">{plural(p.inCloud, "song")} still coming down from iCloud</div>}
                   </div>
                   {!p.fixed && (
                     <Button variant="ghost" size="icon-lg" aria-label={`Stop using ${p.name}`} onClick={() => remove(p.id)}>
@@ -107,13 +102,14 @@ function PlacesCard({ scanning }: { scanning: boolean }) {
                 <div className="mb-2 text-sm font-medium">Found on this box</div>
                 <div className="flex flex-wrap gap-2">
                   {places.suggestions.map((s) => (
-                    <Button key={s} variant="secondary" size="lg" onClick={() => add(s)}>
-                      <FolderPlus /> {s}
+                    <Button key={s.path} variant="secondary" size="lg" onClick={() => add(s.path, s.name === s.path ? undefined : s.name)}>
+                      {s.name === "iCloud Drive" ? <Cloud /> : <FolderPlus />} {s.name}
                     </Button>
                   ))}
                 </div>
               </div>
             )}
+            {places.mac && <MusicAppNote app={places.musicApp} />}
             <div className="flex flex-wrap gap-2">
               <Button size="lg" onClick={() => setBrowsing(true)}>
                 <FolderPlus /> Add a folder
@@ -127,6 +123,31 @@ function PlacesCard({ scanning }: { scanning: boolean }) {
       </CardContent>
       <Browse open={browsing} onOpenChange={setBrowsing} onPick={add} />
     </Card>
+  )
+}
+
+// The Music app's playlists come across from its shared Library.xml; this says whether they are, and what stays behind.
+function MusicAppNote({ app }: { app?: MusicApp }) {
+  if (!app?.found)
+    return (
+      <Alert variant="info">
+        <Music />
+        <AlertTitle>Bring your Music app playlists across</AlertTitle>
+        <AlertDescription>
+          In the Music app on this Mac, open Settings, then Files (Advanced on older Macs), and tick Share Library XML with other applications. Then press Look for new music.
+        </AlertDescription>
+      </Alert>
+    )
+  return (
+    <Alert variant="success">
+      <Music />
+      <AlertTitle>{plural(app.playlists || 0, "playlist")} from the Music app</AlertTitle>
+      <AlertDescription>
+        They come across each time Beyond Music looks for new music. Change them in the Music app.
+        {!!app.outside && <> {plural(app.outside, "song")} on them {app.outside === 1 ? "is" : "are"} in a folder Beyond Music doesn’t use yet: add the Music app folder above.</>}
+        {!!app.locked && <> {plural(app.locked, "song")} from Apple Music {app.locked === 1 ? "stays" : "stay"} in Apple’s own apps: they’re locked to them.</>}
+      </AlertDescription>
+    </Alert>
   )
 }
 
@@ -260,24 +281,6 @@ function AppsCard() {
   )
 }
 
-function LabsCard({ labs, onChange }: { labs: Labs; onChange: (l: Labs) => void }) {
-  const flip = async (on: boolean) => onChange(await box.setLab("usb", on))
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2"><FlaskConical className="size-5" /> Try things early</CardTitle>
-        <CardDescription>Still being made and checked. They may change, or go.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <label className="flex items-center gap-3">
-          <Switch checked={!!labs.usb} onCheckedChange={flip} />
-          <span className="font-medium">A USB stick for DJ decks</span>
-        </label>
-      </CardContent>
-    </Card>
-  )
-}
-
 const gb = (n: number | null) => (n == null ? "" : `${(n / 1e9).toFixed(n < 1e10 ? 1 : 0)} GB`)
 
 function UsbCard() {
@@ -315,7 +318,7 @@ function UsbCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2"><Disc3 className="size-5" /> A USB stick for DJ decks <Badge variant="warning-light">Trying it out</Badge></CardTitle>
+        <CardTitle className="flex items-center gap-2"><Disc3 className="size-5" /> A USB stick for DJ decks <Badge variant="info-light">New</Badge></CardTitle>
         <CardDescription>Puts your playlists on a USB stick the way rekordbox does, so Pioneer DJ players (CDJs, XDJs and the all-in-ones) can find them. For you and your household. Playing to people at a gig or a bar needs the venue’s music licence.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">

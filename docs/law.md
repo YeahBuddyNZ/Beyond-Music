@@ -16,6 +16,7 @@ not legal advice.
 | A copy on a USB stick is still a copy for your own household | The stick takes only songs from the household's folders, only to a stick plugged into the box; the screen says playing out at a venue needs the venue's licence (OneMusic) |
 | Only while you still own the original, on the stick too | *I sold or gave away this CD* takes the album off the box; the next copy to the stick takes it off there. A stick that has left the house can't be reached, and the screen doesn't pretend otherwise |
 | Reading and writing another program's file format to work with it | The stick's library format was worked out from public descriptions (Crate Digger), for interoperability; nothing of Pioneer's is copied or unlocked |
+| No breaking of copy protection, Apple's included | Songs from an Apple Music subscription (FairPlay, `.m4p`) are counted and left in Apple's apps, never played or unlocked (`apple.mjs`) |
 | Radio stations' own streams | Played live from the station's own site; never recorded |
 
 Privacy: what anybody plays stays on the box (*Played recently*), never sent to Beyond or anyone else.
