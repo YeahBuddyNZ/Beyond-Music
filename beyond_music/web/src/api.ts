@@ -87,6 +87,7 @@ export const box = {
     if (!res.ok) throw new Error("The music box couldn’t send that song.")
     return res.arrayBuffer()
   },
+<<<<<<< HEAD
   async labs(): Promise<Labs> {
     return PREVIEW ? (await mock()).mockLabs() : get("api/labs")
   },
@@ -100,6 +101,8 @@ export const box = {
   async copyToUsb(o: { stick: string; playlists: string[]; tempo: Record<string, number>; replace?: boolean }): Promise<{ job: UsbJob; skipped: { title: string }[] }> {
     return PREVIEW ? (await mock()).mockCopyToUsb(o) : post("api/usb/copy", o)
   },
+=======
+>>>>>>> cc35e9c
   async setName(name: string) {
     return PREVIEW ? undefined : post("api/name", { name })
   },

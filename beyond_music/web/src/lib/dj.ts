@@ -205,7 +205,11 @@ function saveCues(id: DeckId) {
   if (!s.track) return
   try {
     const all = JSON.parse(localStorage.getItem(CUES) || "{}")
+<<<<<<< HEAD
     all[s.track.id] = { cue: s.cue, hot: s.hot, bpm: s.bpm }
+=======
+    all[s.track.id] = { cue: s.cue, hot: s.hot }
+>>>>>>> cc35e9c
     localStorage.setItem(CUES, JSON.stringify(all))
   } catch {
     /* private window: cues last until the page closes */
@@ -238,7 +242,10 @@ export async function load(id: DeckId, track: Track) {
       cue: kept?.cue ?? tempo?.first ?? 0, hot: kept?.hot ?? [null, null, null, null],
     })
     applyDeck(id)
+<<<<<<< HEAD
     if (tempo) saveCues(id) // the tempo goes with the song onto a DJ stick
+=======
+>>>>>>> cc35e9c
   } catch (e) {
     setDeck(id, { loading: false, track: null, error: (e as Error).message.includes("box") ? (e as Error).message : "That song wouldn’t open for DJ mode." })
   }
