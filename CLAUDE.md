@@ -31,6 +31,10 @@ and Beyond Family. Tagline "Free your world".
   Every visible part comes from `components/ui` or `components/reui` (installed output: compose, never edit).
 - Only `web/src/api.ts` talks to the box (a test checks). Pure decisions are in `web/src/lib/pure.js`, plain JavaScript
   so `node --test` runs it. `lib/player.ts` is the one player, `lib/store.ts` the library, `lib/tv.ts` the remote.
+- DJ mode (`#dj`, ADR 0004, lazy): `lib/dj.ts` is two decks in an AudioWorklet (the whole song held in memory, any
+  speed, backwards, loops), the EQ and crossfader in Web Audio; `lib/djpure.js` holds the maths (tempo, sync,
+  crossfader, platter, MIDI), tested in `tests/dj.test.mjs`; `lib/midi.ts` learns a controller over Web MIDI (Safari
+  has none). Cues and the MIDI mapping stay in this browser's storage. Never record or stream a mix off the box.
   `?preview` runs against `mock.js`; `npm run build:box` leaves it out. `?box=http://ip:8097` lets Beyond TV open the
   app from its own files.
 - Checks: `sh tests/run.sh`; `cd beyond_music/web && npm run build:box`. GitHub Actions minutes may be out: run both
