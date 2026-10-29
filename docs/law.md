@@ -7,7 +7,8 @@ not legal advice.
 | What the law allows (s 81A format shifting, and the household's own work) | How the code holds to it |
 |---|---|
 | A copy of a sound recording you own, for your own household | Plays only the household's folders; only answers the house network (`main.mjs`) |
-| One copy per device | Streams from the box; it doesn't push copies to devices |
+| One copy per device | Streams from the box. The Beyond Home phone app can keep one copy of an album on that phone (*Keep on this phone*, Beyond-Home ADR 0002), in its own storage, never passed on |
+| Only while you still own the original, on the phone too | When the phone next reaches the box, an album the box no longer has (*I sold or gave away this CD*) is taken off the phone (`keptGone` in Beyond Home) |
 | Only while you still own the original | Copied CDs are filed as such; *I sold or gave away this CD* deletes our copies and hides any in your folders (`/api/albums/:id/sold`) |
 | Not for films or TV (s 81A covers sound recordings) | Plays video files the household already has; never copies a disc |
 | No breaking of copy protection (s 226A and on) | No DVD or Blu-ray ripping, no decryption tools, ever |
