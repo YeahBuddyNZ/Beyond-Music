@@ -49,3 +49,6 @@ and Beyond Family. Tagline "Free your world".
 - Checks: `sh tests/run.sh`; `cd beyond_music/web && npm run build:box`. GitHub Actions minutes may be out: run both
   locally before merging.
 - Not yet run on a real Home Assistant box, a real CD drive, or a TV: say so when reporting.
+
+## Version control
+- Version control follows `docs/VERSION-CONTROL.md` (Beyond standard): work on a branch, push `wip/*` for unfinished work at the end of every session, never commit keys or signing files, and run `git config core.hooksPath .githooks` once per clone. Apple platform design follows Apple's Human Interface Guidelines; web UI is ReUI only.
