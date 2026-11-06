@@ -49,3 +49,6 @@ and Beyond Family. Tagline "Free your world".
 - Checks: `sh tests/run.sh`; `cd beyond_music/web && npm run build:box`. GitHub Actions minutes may be out: run both
   locally before merging.
 - Not yet run on a real Home Assistant box, a real CD drive, or a TV: say so when reporting.
+
+## UI standard
+- Any screen or component change follows `docs/ui-standard.md` (the Beyond UI standard, 30 rules: layout and touch checks plus hierarchy, contrast, proximity, alignment, progressive disclosure, feedback, error recovery, user control and intuitive patterns). Look at the result at 375px and 1280px, light and dark, before calling it done. Master copy: beyond-agent-hq `docs/ui-standard.md`.
