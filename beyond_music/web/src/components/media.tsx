@@ -41,7 +41,7 @@ export function AlbumCard({ album, lib }: { album: Album; lib: Library }) {
         tabIndex={-1}
         aria-label={`Play ${album.title}`}
         onClick={() => playAlbum(album, lib)}
-        className="absolute right-4 bottom-16 grid size-11 translate-y-1 place-items-center rounded-full bg-primary text-primary-foreground opacity-0 shadow-lg transition-[opacity,transform] group-hover:translate-y-0 group-hover:opacity-100"
+        className="absolute right-4 bottom-16 grid size-11 translate-y-1 place-items-center rounded-full bg-primary text-primary-foreground opacity-0 shadow-lg transition-[opacity,transform] group-hover:translate-y-0 group-hover:opacity-100 [@media(hover:none)]:translate-y-0 [@media(hover:none)]:opacity-100"
       >
         <Play className="size-5 fill-current" />
       </button>
