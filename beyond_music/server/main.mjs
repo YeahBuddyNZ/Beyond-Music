@@ -232,6 +232,10 @@ const server = createServer(async (req, res) => {
       res.setHeader("Access-Control-Allow-Origin", req.headers.origin)
       res.setHeader("Vary", "Origin")
     }
+    // Beyond TV's Light show on Google TV reads the library and the songs through the TV's own relay, which sends no
+    // Origin, and draws the sound (Web Audio needs CORS for that). A browser always sends Origin on a CORS request,
+    // so a website never sees this: only the relay and other apps, which could read it anyway.
+    if (!req.headers.origin && (req.method === "GET" || req.method === "HEAD")) res.setHeader("Access-Control-Allow-Origin", "*")
     if (req.method === "OPTIONS") {
       res.writeHead(204, { "Access-Control-Allow-Methods": "GET, POST, PUT", "Access-Control-Allow-Headers": "Content-Type, Range", "Access-Control-Max-Age": "600" })
       return res.end()

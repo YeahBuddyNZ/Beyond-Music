@@ -65,6 +65,16 @@ test("songs stream with Range, and covers come from the file", async () => {
   assert.equal((await call("/api/play/..%2F..%2Fetc%2Fpasswd")).status, 404)
 })
 
+test("the library and songs can be read for the TV's Light show: CORS for the relay, the asking page's own origin otherwise", async () => {
+  const { tracks } = await json("/api/library")
+  assert.equal((await call(`/api/play/${tracks[0].id}`)).headers["access-control-allow-origin"], "*")
+  assert.equal((await call("/api/library")).headers["access-control-allow-origin"], "*")
+  assert.equal((await call(`/api/play/${tracks[0].id}`, { headers: { origin: "null" } })).headers["access-control-allow-origin"], "null")
+  assert.equal((await call(`/api/play/${tracks[0].id}`, { headers: { origin: "https://evil.example.com" } })).status, 403)
+  const write = await call("/api/name", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "Our music" }) })
+  assert.equal(write.headers["access-control-allow-origin"], undefined, "writes never get it")
+})
+
 test("a page from outside the house can't use it (DNS rebinding)", async () => {
   assert.equal((await call("/api/library", { headers: { host: "evil.example.com" } })).status, 403)
   const write = await call("/api/playlists", { method: "POST", headers: { "content-type": "application/json", origin: "https://evil.example.com" }, body: JSON.stringify({ name: "x", items: [] }) })
