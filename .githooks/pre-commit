@@ -1,3 +1,6 @@
 #!/usr/bin/env bash
 # Enable once per clone: git config core.hooksPath .githooks
-exec bash "$(git rev-parse --show-toplevel)/scripts/check-secrets.sh"
+root="$(git rev-parse --show-toplevel)"
+bash "$root/scripts/check-secrets.sh" || exit 1
+[ -f "$root/scripts/check-style.sh" ] && { bash "$root/scripts/check-style.sh" || exit 1; }
+exit 0

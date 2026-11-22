@@ -1,0 +1,7 @@
+# Per-machine permission choices ("always allow, this project") land here.
+# They must never become the repo's committed policy. See CLAUDE.md and
+# the beyond-traps skill: writes belong in "ask", not pasted into "allow".
+settings.local.json
+
+# Backup the installer leaves when it replaces an existing settings.json.
+settings.json.bak
