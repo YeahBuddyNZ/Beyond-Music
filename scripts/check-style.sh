@@ -2,6 +2,7 @@
 # Beyond style rule, enforced at commit: no em dashes in anything we write.
 # Usage: scripts/check-style.sh          check staged changes (what pre-commit runs)
 #        scripts/check-style.sh --all    check every tracked text file (an audit)
+#        scripts/check-style.sh --range origin/main   check lines added since that base (what CI runs on a PR)
 # Only lines you add are checked, so old text does not block a commit. A line carrying
 # "style-ok" is skipped on purpose (for quoting someone else). Do not edit this script to get past it.
 set -u
@@ -16,6 +17,13 @@ if [ "${1:-}" = "--all" ]; then
     h=$(grep -InF -- "$DASH" "$f" 2>/dev/null | grep -v 'style-ok' | head -3 | sed "s|^|$f:|")
     [ -n "$h" ] && hits="$hits$h"$'\n'
   done < <(git ls-files)
+elif [ "${1:-}" = "--range" ]; then
+  base="${2:?usage: check-style.sh --range <base-ref>}"
+  while IFS= read -r f; do
+    printf '%s\n' "$f" | grep -Eq "$skip_re" && continue
+    h=$(git diff -U0 --diff-filter=ACMR "$base...HEAD" -- "$f" | grep -E '^\+[^+]' | grep -F -- "$DASH" | grep -v 'style-ok' | head -3 | sed "s|^+|$f: |")
+    [ -n "$h" ] && hits="$hits$h"$'\n'
+  done < <(git diff --name-only --diff-filter=ACMR "$base...HEAD")
 else
   while IFS= read -r f; do
     printf '%s\n' "$f" | grep -Eq "$skip_re" && continue
